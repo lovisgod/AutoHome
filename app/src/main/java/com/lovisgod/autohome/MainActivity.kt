@@ -5,6 +5,7 @@ import android.content.Intent
 import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.os.Handler
 import android.speech.RecognitionListener
 import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
@@ -34,14 +35,18 @@ class MainActivity : AppCompatActivity() {
             getSpeech()
         }
 
+
+        speechRecognizer = SpeechRecognizer.createSpeechRecognizer(this)
+
+
         textToSpeech = TextToSpeech(this, TextToSpeech.OnInitListener {})
 
-        textToSpeech.speak(
-            "Hi I am Mike Please tell me wha you want me to do",
-            TextToSpeech.QUEUE_FLUSH,
-            null,
-            null)
-
+//        textToSpeech.speak(
+//            "Hi I am Mike Please tell me wha you want me to do",
+//            TextToSpeech.QUEUE_FLUSH,
+//            null,
+//            null)
+//        getSpeech()
         speechRecognizer = SpeechRecognizer.createSpeechRecognizer(this)
         speechRecognizer.setRecognitionListener( object : RecognitionListener{
             override fun onReadyForSpeech(params: Bundle?) {
