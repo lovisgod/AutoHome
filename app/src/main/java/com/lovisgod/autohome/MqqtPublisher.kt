@@ -13,11 +13,14 @@ import java.io.UnsupportedEncodingException
 class MqttPublisher {
 
     fun publishSocketOne (client: MqttAndroidClient, event: String) {
-        val topic = "socket1"
+        val topic = "Nsisong/f/Socket"
         val encodedPayload: ByteArray
         try {
+            println(client.isConnected)
             encodedPayload = event.toByteArray(charset("UTF-8"))
-            val message = MqttMessage(encodedPayload)
+            val message = MqttMessage()
+            message.payload = encodedPayload
+            message.qos = 1
             message.isRetained = true
             client.publish(topic, message).actionCallback  = object : IMqttActionListener {
                 override fun onSuccess(asyncActionToken: IMqttToken) {

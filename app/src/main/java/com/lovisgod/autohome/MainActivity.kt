@@ -5,7 +5,6 @@ import android.content.Intent
 import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.os.Handler
 import android.speech.RecognitionListener
 import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
@@ -16,8 +15,8 @@ import android.widget.Toast
 import androidx.annotation.RequiresApi
 import org.eclipse.paho.android.service.MqttAndroidClient
 import org.eclipse.paho.client.mqttv3.*
-import java.lang.Exception
 import java.util.*
+import kotlin.Exception
 
 class MainActivity : AppCompatActivity() {
     private lateinit var textToSpeech: TextToSpeech
@@ -30,7 +29,7 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        createCLient()
+        createClient()
         iintent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
         iintent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
         iintent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault())
@@ -85,21 +84,21 @@ class MainActivity : AppCompatActivity() {
                 if (result !=null) {
                     val string = result.get(0)
                     println(string)
-                    if (string.contains("turn on socket one")) {
+                    if (string.contains("turn on socket")) {
                         textToSpeech.speak(
                             "Ok, I will turn it on now",
                             TextToSpeech.QUEUE_FLUSH,
                             null,
                             null)
-                        publisher.publishSocketOne(client, "on")
+                        publisher.publishSocketOne(client, "1")
                     }
-                    if (string.contains("turn off socket one")) {
+                    if (string.contains("turn off socket")) {
                         textToSpeech.speak(
-                            "Ok, I will turn it on now",
+                            "Ok, I will turn it off now",
                             TextToSpeech.QUEUE_FLUSH,
                             null,
                             null)
-                        publisher.publishSocketOne(client, "off")
+                        publisher.publishSocketOne(client, "0")
                     }
                 }
             }
@@ -110,6 +109,8 @@ class MainActivity : AppCompatActivity() {
 //        speechRecognizer.startListening(iintent)
     }
 
+
+
     @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
     fun getSpeech() {
 
@@ -117,7 +118,7 @@ class MainActivity : AppCompatActivity() {
             println("this is it")
 //            startActivityForResult(iintent, 10)
             textToSpeech.speak(
-                "Hi I am Mike Please tell me wha you want me to do",
+                "Hi, I am Mike Please tell me what you want me to do.",
                 TextToSpeech.QUEUE_FLUSH,
                 null,
                 null)
@@ -148,20 +149,28 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    fun createCLient() {
+    private fun createClient() {
         val clientId = MqttClient.generateClientId()
-        client =  MqttAndroidClient(applicationContext, "tcp://io.adafruit.com:1883",
-            clientId)
+        println(clientId)
+        client =  MqttAndroidClient(applicationContext, "tcp://io.adafruit.com:1883",  clientId)
         val options = MqttConnectOptions()
-        val key = "dkldkldjldjljsdl"
+        options.keepAliveInterval = 60;//seconds
+        options.isCleanSession = true;
+        options.isAutomaticReconnect = true;
+        val key = "aio_dGro818gXJm3K8mKLDmd6QZ7iTyf"
+        options.mqttVersion = MqttConnectOptions.MQTT_VERSION_DEFAULT
         options.userName = "Nsisong"
         options.password = key.toCharArray()
 
         try {
             val token = client.connect(options)
+            println(client.isConnected)
             token.actionCallback = object : IMqttActionListener {
                 override fun onSuccess(asyncActionToken: IMqttToken) {
                     // We are connected
+                    println("success")
+                    println(client.isConnected)
+                    println(token.topics)
                     Log.d("TAG", "onSuccess")
                 }
 
@@ -170,10 +179,13 @@ class MainActivity : AppCompatActivity() {
                     exception: Throwable
                 ) {
                     // Something went wrong e.g. connection timeout or firewall problems
+                    println(exception.localizedMessage)
+                    println("failure")
                     Log.d("TAG", "onFailure")
                 }
             }
-        } catch (e: MqttException) {
+        } catch (e: Exception) {
+            println(e.localizedMessage)
             e.printStackTrace()
         }
     }
